@@ -1,5 +1,5 @@
 
-/* FullFunctions2.ino */
+/* FullFunctions.ino */
 
 /*--------------------------PRE-SETUP--------------------------*/
 #include <Servo.h>         // note: Servo library disables PWM on pins 9 and 10
@@ -33,7 +33,7 @@ NewPing eyes(TRIG_PIN, ECHO_PIN, MAX_DIST);   // NewPing sets pinmodes and creat
 Servo neck;                                   // create servo object ("neck")
 
 
-/*------------------------------SETUP-------------------------------*/
+/*____________________________SETUP__________________________________*/
 void setup() {
   neck.attach(SERVO_PIN);         // attach neck servo object to specified pin (e.g. 13)
 
@@ -58,7 +58,8 @@ void setup() {
   delay(1000);                                      // right of window for Serial Monitor
   sp_med();
 }
-/*------------------------------LOOP---------------------------------*/
+
+/*____________________________LOOP______________________________*/
 void loop() {
   ping_it();
   if (ping_dist != 0 && ping_dist < 15) {
@@ -78,6 +79,46 @@ void loop() {
   }
 
 }
+
+
+/*------------------------------FAST TALK---------------------------------*/
+void fast_talk() {
+  Serial.print('\n');  Serial.println("fast_talk");  Serial.print('\n');
+  for (int i = 1; i <= 6; i++) {                                  // loop 6 times
+    TimerFreeTone(SOUND_PIN, rand() % 1000 + 800, rand() % 50 + 40, VOLUME);
+    delay(rand() % 50 + 25);
+  }
+  TimerFreeTone(SOUND_PIN, rand() % 800 + 600, rand() % 100 + 50, VOLUME);
+  delay(rand() % 100 + 50);
+  TimerFreeTone(SOUND_PIN, rand() % 800 + 600, rand() % 100 + 50, VOLUME);
+  delay(rand() % 100 + 50);
+  delay(100);
+}
+
+/*------------------------ SAY LEFT -------------------------*/
+void say_left() {
+  Serial.print('\n');  Serial.println("say_left");  Serial.print('\n');
+  TimerFreeTone(SOUND_PIN, 1000 + i, 80, VOLUME);
+  delay(50);
+  for (int i = 1; i <= 20; i++) {
+    TimerFreeTone(SOUND_PIN, 1000 - i, 20, VOLUME);
+  }
+  delay(50);
+}
+
+/*------------------------ SAY RIGHT -------------------------*/
+void say_right() {
+  Serial.print('\n');  Serial.println("say_right");  Serial.print('\n');
+  Serial.print('\n');  Serial.println("say_left");  Serial.print('\n');
+  TimerFreeTone(SOUND_PIN, 1000, 80, VOLUME);
+  delay(50);
+  for (int i = 1; i <= 20; i++) {
+    TimerFreeTone(SOUND_PIN, 1000 + i, 20, VOLUME);
+  }
+  delay(50);
+  
+}
+
 
 /*------------------------------PING_IT---------------------------------*/
 void ping_it() {
@@ -119,10 +160,11 @@ void look_around() {  delay(100);
 void decide_direction() {
   if ( ping_right == 0 )  { ping_right = 400; }
   if ( ping_left  == 0 )  { ping_left  = 400; }
-  if ( ping_right > ping_left ) { go_right(); }
-  else { go_left(); }
+  if ( ping_right > ping_left ) { say_right(); }
+  else { say_left(); }
 
 }
+
 
 /*------------------------------GO LEFT---------------------------------*/
 void go_left() {
@@ -169,21 +211,6 @@ void hard_left() {
 void hard_right() {
   digitalWrite(M1, HIGH);   digitalWrite(M2, LOW);          // left forward
   digitalWrite(M3, LOW);   digitalWrite(M4, HIGH);     }    // right reverse
-
-
-/*------------------------------FAST TALK---------------------------------*/
-void fast_talk() {
-  Serial.print('\n');  Serial.println("fast_talk");  Serial.print('\n');
-  for (int i = 1; i <= 6; i++) {                                             // loop 6 times
-    TimerFreeTone(SOUND_PIN, rand() % 1000 + 800, rand() % 50 + 40, VOLUME);
-    delay(rand() % 50 + 25);
-  }
-  TimerFreeTone(SOUND_PIN, rand() % 800 + 600, rand() % 100 + 50, VOLUME);
-  delay(rand() % 100 + 50);
-  TimerFreeTone(SOUND_PIN, rand() % 800 + 600, rand() % 100 + 50, VOLUME);
-  delay(rand() % 100 + 50);
-  delay(100);
-}
 
 
 /*------------------------------SCOUTING---------------------------------*/
