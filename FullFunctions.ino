@@ -52,14 +52,13 @@ void setup() {
   neck.write(90);  delay(200);    // move neck to 90 degree angle (straight forward)
   neck.write(105);  delay(150);  neck.write(90);    // overshoot then correct; makes it lifelike
 
-  say_left();
   sp_creep();                                       // set motor speed to very slow
-  go_forward(); delay(20); stop_moving();           // prime motors
+//  go_forward(); delay(20); stop_moving();           // prime motors
   
   Serial.begin(9600);             // open Serial channel to use Serial.print
   Serial.println("Begin Test");   // to see output go to Tools --> Serial Monitor 
                                   // or click on little magnifying glass at top
-  delay(1000);                    // right of window for Serial Monitor
+  delay(500);                    // right of window for Serial Monitor
 //  sp_med();
 }
 
@@ -68,7 +67,7 @@ void loop() {
 
   ping_it();
 
-  if (ping_dist != 0 && ping_dist < 15) {
+  if (ping_dist != 0 && ping_dist < 30) {
     stop_moving();
     Serial.println("OBSTACLE ");
     short_talk();
@@ -77,7 +76,7 @@ void loop() {
   }
 
   sp_creep();
-  go_forward();   delay(100);
+//  go_forward();   delay(100);
 
   counter += 1;
   if (counter >= 3) {     // stop moving every so often
@@ -85,7 +84,7 @@ void loop() {
     delay(10);
     counter = 0;          // reset counter
   }
-
+  delay(50);
 }
 
 
@@ -116,10 +115,10 @@ void short_talk() {
 /*------------------------ SAY LEFT -------------------------*/
 void say_left() {
   Serial.println("say_left");  Serial.print('\n');
-  TimerFreeTone(SOUND_PIN, 800, 80, VOLUME);
-  delay(50);
+//  TimerFreeTone(SOUND_PIN, 800, 80, VOLUME);
+//  delay(20);
   for (int i = 1; i <= 30; i++) {
-    TimerFreeTone(SOUND_PIN, 600 - i, 20, VOLUME);
+    TimerFreeTone(SOUND_PIN, 1400 - (i * 2), 10, VOLUME);
   }
   delay(50);
 }
@@ -127,10 +126,10 @@ void say_left() {
 /*------------------------ SAY RIGHT -------------------------*/
 void say_right() {
   Serial.println("say_right");  Serial.print('\n');
-  TimerFreeTone(SOUND_PIN, 1200, 80, VOLUME);
-  delay(50);
+//  TimerFreeTone(SOUND_PIN, 1200, 80, VOLUME);
+  delay(20);
   for (int i = 1; i <= 30; i++) {
-    TimerFreeTone(SOUND_PIN, 1400 + i, 20, VOLUME);
+    TimerFreeTone(SOUND_PIN, 1000 + (i * 2), 10, VOLUME);
   }
   delay(50);
 }
@@ -173,8 +172,8 @@ void look_around() {  delay(100);
 void decide_direction() {
   if ( ping_right == 0 )  { ping_right = 400; }
   if ( ping_left  == 0 )  { ping_left  = 400; }
-  if ( ping_right > ping_left ) { say_right(); go_right(); }
-  else { say_left(); go_left(); }
+  if ( ping_right > ping_left ) { say_right(); } //go_right(); }
+  else { say_left(); } //go_left(); }
 }
 
 
