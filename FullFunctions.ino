@@ -44,35 +44,43 @@ void setup() {
   pinMode(ALOG1, OUTPUT);         // initialize PWM pins
   pinMode(ALOG2, OUTPUT);
   
-  pinMode(LED_BUILTIN, OUTPUT);   // initialize LED_BUILTIN pin
+  pinMode(LED_BUILTIN, OUTPUT);   // initialize LED_BUILTIN pin (pin 13?)
 
+  fast_talk();
+
+  neck.write(80);  delay(150);
   neck.write(90);  delay(200);    // move neck to 90 degree angle (straight forward)
-  neck.write(105);  delay(150);  neck.write(90);    // overshoot then correct, makes it lifelike
+  neck.write(105);  delay(150);  neck.write(90);    // overshoot then correct; makes it lifelike
 
+  say_left();
   sp_creep();                                       // set motor speed to very slow
   go_forward(); delay(20); stop_moving();           // prime motors
   
-  Serial.begin(9600);         Serial.print('\n');   // open Serial channel to use Serial.print
-  Serial.print("Begin Test"); Serial.print('\n');   // to see output go to Tools --> Serial Monitor 
-                              Serial.print('\n');   // or click on little magnifying glass at top
-  delay(1000);                                      // right of window for Serial Monitor
-  sp_med();
+  Serial.begin(9600);             // open Serial channel to use Serial.print
+  Serial.println("Begin Test");   // to see output go to Tools --> Serial Monitor 
+                                  // or click on little magnifying glass at top
+  delay(1000);                    // right of window for Serial Monitor
+//  sp_med();
 }
 
 /*____________________________LOOP______________________________*/
 void loop() {
+
   ping_it();
+
   if (ping_dist != 0 && ping_dist < 15) {
     stop_moving();
     Serial.println("OBSTACLE ");
-    fast_talk();
+    short_talk();
     look_around();
+    decide_direction();
   }
-  sp_slow();
-  go_forward();   delay(60);
+
+  sp_creep();
+  go_forward();   delay(100);
 
   counter += 1;
-  if (counter >= 2) {     // stop moving every so often
+  if (counter >= 3) {     // stop moving every so often
     stop_moving();
     delay(10);
     counter = 0;          // reset counter
@@ -83,7 +91,7 @@ void loop() {
 
 /*------------------------------FAST TALK---------------------------------*/
 void fast_talk() {
-  Serial.print('\n');  Serial.println("fast_talk");  Serial.print('\n');
+  Serial.println("fast_talk");  Serial.print('\n');
   for (int i = 1; i <= 6; i++) {                                  // loop 6 times
     TimerFreeTone(SOUND_PIN, rand() % 1000 + 800, rand() % 50 + 40, VOLUME);
     delay(rand() % 50 + 25);
@@ -95,38 +103,46 @@ void fast_talk() {
   delay(100);
 }
 
+/*------------------------------SHORT TALK---------------------------------*/
+void short_talk() {
+  Serial.println("short_talk");  Serial.print('\n');
+  for (int i = 1; i <= 4; i++) {                                  // loop 6 times
+    TimerFreeTone(SOUND_PIN, rand() % 1000 + 800, rand() % 50 + 40, VOLUME);
+    delay(rand() % 20 + 20);
+  }
+  delay(100);
+}
+
 /*------------------------ SAY LEFT -------------------------*/
 void say_left() {
-  Serial.print('\n');  Serial.println("say_left");  Serial.print('\n');
-  TimerFreeTone(SOUND_PIN, 1000 + i, 80, VOLUME);
+  Serial.println("say_left");  Serial.print('\n');
+  TimerFreeTone(SOUND_PIN, 800, 80, VOLUME);
   delay(50);
-  for (int i = 1; i <= 20; i++) {
-    TimerFreeTone(SOUND_PIN, 1000 - i, 20, VOLUME);
+  for (int i = 1; i <= 30; i++) {
+    TimerFreeTone(SOUND_PIN, 600 - i, 20, VOLUME);
   }
   delay(50);
 }
 
 /*------------------------ SAY RIGHT -------------------------*/
 void say_right() {
-  Serial.print('\n');  Serial.println("say_right");  Serial.print('\n');
-  Serial.print('\n');  Serial.println("say_left");  Serial.print('\n');
-  TimerFreeTone(SOUND_PIN, 1000, 80, VOLUME);
+  Serial.println("say_right");  Serial.print('\n');
+  TimerFreeTone(SOUND_PIN, 1200, 80, VOLUME);
   delay(50);
-  for (int i = 1; i <= 20; i++) {
-    TimerFreeTone(SOUND_PIN, 1000 + i, 20, VOLUME);
+  for (int i = 1; i <= 30; i++) {
+    TimerFreeTone(SOUND_PIN, 1400 + i, 20, VOLUME);
   }
   delay(50);
-  
 }
 
 
 /*------------------------------PING_IT---------------------------------*/
 void ping_it() {
-  ping_dist = eyes.ping_cm();                                    // __.ping_cm() is a NewPing function to return distance
-  Serial.print(ping_dist);     Serial.print(" cm -- ");          // output ping distance to Serial Monitor
+  ping_dist = eyes.ping_cm();                          // __.ping_cm() is a NewPing function to return distance
+  Serial.print(ping_dist);     Serial.print(" cm ");   // output ping distance to Serial Monitor
   neck_pos = neck.read();
-  if   (neck_pos <= 70) {                            // three ping variables for looking around
-    ping_right   = ping_dist;  Serial.println(" = ping_right   ");
+  if   (neck_pos <= 70) {                              // three ping variables for looking around
+    ping_right  = ping_dist;  Serial.println(" = ping_right   ");
   }
   if   (neck_pos >= 120) {
     ping_left  = ping_dist;    Serial.println(" = ping_left   ");
@@ -145,40 +161,36 @@ void look_around() {  delay(100);
   ping_it();          delay(200);    // get ping
 
   neck.write(150);    delay(100);
-  neck.write(140);    delay(50);    // move neck to 140 degrees
+  neck.write(140);    delay(50);     // move neck to 140 degrees
   ping_it();          delay(200);    // get ping
   
   neck.write(80);     delay(100);
-  neck.write(90);     delay(50);    // move neck to 90 degrees
+  neck.write(90);     delay(50);     // move neck to 90 degrees
   ping_it();          delay(200);    // get ping
-
-  decide_direction();
 }
-
 
 /*------------------------------DECIDE DIRECTION---------------------------------*/
 void decide_direction() {
   if ( ping_right == 0 )  { ping_right = 400; }
   if ( ping_left  == 0 )  { ping_left  = 400; }
-  if ( ping_right > ping_left ) { say_right(); }
-  else { say_left(); }
-
+  if ( ping_right > ping_left ) { say_right(); go_right(); }
+  else { say_left(); go_left(); }
 }
 
 
 /*------------------------------GO LEFT---------------------------------*/
 void go_left() {
   Serial.println("   go_left ");
-  sp_med();       delay(200);
-  hard_left();    delay(600);
+  sp_creep();     delay(200);
+  hard_left();    delay(1000);
   stop_moving();  delay(200);
 }
 
 /*------------------------------GO RIGHT---------------------------------*/
 void go_right() {
   Serial.println("   go_right ");
-  sp_med();       delay(200);
-  hard_right();   delay(600);
+  sp_creep();     delay(200);
+  hard_right();   delay(1000);
   stop_moving();  delay(200);
 }
 
@@ -251,5 +263,5 @@ void crawl() {
 
 
 
-/*      by cosmos      */
+/*      by eagleDog      */
 
